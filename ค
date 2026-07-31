@@ -1,0 +1,73 @@
+local P, U, R, S = game:GetService("Players"), game:GetService("UserInputService"), game:GetService("RunService"), game:GetService("Players").LocalPlayer
+local G = S:WaitForChild("PlayerGui", 5) if not G then return end
+if G:FindFirstChild("RainbowAnimHub") then G.RainbowAnimHub:Destroy() end
+
+local SG = Instance.new("ScreenGui", G) SG.Name = "RainbowAnimHub" SG.ResetOnSpawn = false
+local TB = Instance.new("TextButton", SG) TB.Size = UDim2.new(0, 50, 0, 50) TB.Position = UDim2.new(0, 30, 0.4, 0) TB.BackgroundColor3 = Color3.fromRGB(30, 30, 30) TB.TextColor3 = Color3.fromRGB(255, 255, 255) TB.Text = "เมนู" TB.TextSize = 14 TB.Active = true
+Instance.new("UICorner", TB).CornerRadius = UDim.new(1, 0)
+local TS = Instance.new("UIStroke", TB) TS.Thickness = 2
+
+local MF = Instance.new("Frame", SG) MF.Size = UDim2.new(0, 220, 0, 150) MF.Position = UDim2.new(0, 90, 0.3, 0) MF.BackgroundColor3 = Color3.fromRGB(20, 20, 20) MF.BackgroundTransparency = 0.1
+Instance.new("UICorner", MF).CornerRadius = UDim.new(0, 10)
+local MS = Instance.new("UIStroke", MF) MS.Thickness = 2
+
+-- ระบบลากปุ่มและเมนู
+local function makeDraggable(obj)
+	local dragging, dragStart, startPos
+	obj.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true dragStart = input.Position startPos = obj.Position
+			input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+		end
+	end)
+	U.InputChanged:Connect(function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+			local delta = input.Position - dragStart
+			obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+	end)
+end
+makeDraggable(TB) makeDraggable(MF)
+
+TB.Activated:Connect(function() MF.Visible = not MF.Visible end)
+
+local TL = Instance.new("TextLabel", MF) TL.Size = UDim2.new(1, 0, 0, 35) TL.BackgroundTransparency = 1 TL.TextColor3 = Color3.fromRGB(255, 255, 255) TL.Text = "⚡ Rainbow Animate Hub" TL.TextSize = 14
+
+local AnimBtn = Instance.new("TextButton", MF) AnimBtn.Size = UDim2.new(0, 190, 0, 45) AnimBtn.Position = UDim2.new(0, 15, 0, 45) AnimBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40) AnimBtn.TextColor3 = Color3.fromRGB(255, 255, 255) AnimBtn.Text = "ท่าทางอนิเมะ: OFF" AnimBtn.TextSize = 13
+Instance.new("UICorner", AnimBtn).CornerRadius = UDim.new(0, 6)
+
+local ResetAnimBtn = Instance.new("TextButton", MF) ResetAnimBtn.Size = UDim2.new(0, 190, 0, 35) ResetAnimBtn.Position = UDim2.new(0, 15, 0, 100) ResetAnimBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60) ResetAnimBtn.TextColor3 = Color3.fromRGB(255, 255, 255) ResetAnimBtn.Text = "รีเซ็ตท่าทางปกติ" ResetAnimBtn.TextSize = 13
+Instance.new("UICorner", ResetAnimBtn).CornerRadius = UDim.new(0, 6)
+
+-- ระบบเปลี่ยนท่าทางอนิเมชั่นตัวละคร (Anim / R15 Pose)
+local animActive = false
+
+AnimBtn.Activated:Connect(function()
+	animActive = not animActive
+	local char = S.Character
+	if not char then return end
+	local animateScript = char:FindFirstChild("Animate")
+	
+	if animActive then
+		AnimBtn.Text = "ท่าทางอนิเมะ: ON" AnimBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+		if animateScript then animateScript.Disabled = true end -- ปิดท่าเดินปกติเพื่อให้ตัวละครค้างท่าเท่ๆ
+	else
+		AnimBtn.Text = "ท่าทางอนิเมะ: OFF" AnimBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+		if animateScript then animateScript.Disabled = false end
+	end
+end)
+
+ResetAnimBtn.Activated:Connect(function()
+	animActive = false
+	AnimBtn.Text = "ท่าทางอนิเมะ: OFF" AnimBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	local char = S.Character
+	if char and char:FindFirstChild("Animate") then
+		char.Animate.Disabled = false
+	end
+end)
+
+R.RenderStepped:Connect(function()
+	local hue = tick() % 5 / 5
+	local rc = Color3.fromHSV(hue, 1, 1)
+	TS.Color = rc MS.Color = rc TL.TextColor3 = rc
+end)
